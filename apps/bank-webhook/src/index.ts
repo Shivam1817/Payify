@@ -8,7 +8,8 @@ app.post('/hdfcWebhook', async(req, res) => {
     const paymentinformation:{
         token: string,
         userId: string,
-        amount: number
+        //if facing any propblem use it as string
+        amount: string
     } = {
         token: req.body.token,
         userId: req.body.userId,
@@ -22,13 +23,13 @@ app.post('/hdfcWebhook', async(req, res) => {
                 },
                 data: {
                     amount: {
-                        increment: paymentinformation.amount
+                        increment: Number(paymentinformation.amount)
                     }
                 }
             }),
             db.onRampTransaction.updateMany({
                 where: {
-                    userId: Number(paymentinformation.userId),
+                    token: paymentinformation.token
                 },
                 data: {
                     status: "Success",

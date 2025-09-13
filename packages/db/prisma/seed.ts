@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-
+import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -7,11 +7,29 @@ async function main() {
         where:{
             number: '9999999999'
         },
-        update:{},
+        update:{
+            password: await bcrypt.hash('shivam', 10),
+            Balance: {
+                updateMany: {
+                    where: {
+                        userId: 2
+                    },
+                    data: {
+                        amount: 20000
+                    }
+                }
+            }
+        },
         create:{
             number: '9999999999',
-            password: 'shivam',
+            password: await bcrypt.hash('shivam', 10),
             name: 'Shivam',
+            Balance: {
+                create: {
+                    amount: 20000,
+                    locked: 0,
+                }
+            },
             OnRampTransaction: {
                 create: {
                     startTime: new Date(),
@@ -27,11 +45,19 @@ async function main() {
         where:{
             number: '8888888888'
         },
-        update:{},
+        update:{
+            password: await bcrypt.hash('kammo_ji', 10)
+        },
         create:{
             number: '8888888888',
-            password: 'kammo_ji',
+            password: await bcrypt.hash('kammo_ji', 10),
             name: 'Kammo Ji',
+            Balance: {
+                create: {
+                    amount: 2000,
+                    locked: 0,
+                }
+            },
             OnRampTransaction: {
                 create: {
                     startTime: new Date(),

@@ -37,11 +37,14 @@ async function getOnRampTransactions() {
 export default async function() {
     const balance = await getBalance();
     const transactions = await getOnRampTransactions();
-
+    //too know the user's name
+    const session = await getServerSession(authOptions);
+    const name = session?.user?.name || session?.user?.email || "User";
+    
     return (
         <div className="w-screen">
             <div className="text-4xl text-[#6a51a6] pt-8 mb-8 font-bold">
-                Transfer
+                Transfer {name} 
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 p-4">
                 <div>
