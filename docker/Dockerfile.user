@@ -1,53 +1,18 @@
-# Use a specific and lightweight base image
-FROM node:20-alpine AS base
+FROM node:20.12.0-alpine3.19
 
-# Set the working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Install dependencies needed for the build
-RUN npm install -g turbo
+COPY package.json package-lock.json turbo.json tsconfig.json ./
 
-# Copy the necessary package manager and config files
-COPY . .
-
-# Use Turborepo to prune the monorepo to only include the user-app
-RUN turbo prune --scope=user-app --docker
-
-# --- Build Stage ---
-FROM node:20-alpine AS builder
-WORKDIR /app
-
-# Copy the pruned files from the base stage
-COPY --from=base /app/out/json/ .
-COPY --from=base /app/out/full/ .
+COPY apps ./apps
+COPY packages ./packages
 
 # Install dependencies
 RUN npm install
-
-# Generate the Prisma client
+# Can you add a script to the global package.json that does this?
 RUN npm run db:generate
 
-# Build only the user-app
-RUN turbo run build --filter=user-app...
+# Can you filter the build down to just one app?
+RUN npm run build
 
-# --- Runner Stage ---
-FROM node:20-alpine AS runner
-WORKDIR /app
-
-# Copy the pruned files from the base stage
-COPY --from=base /app/out/json/ .
-COPY --from=base /app/out/full/ .
-
-# Install production dependencies
-RUN npm install --omit=dev
-
-# Copy the built app from the builder stage
-COPY --from=builder /app/apps/user-app/.next ./apps/user-app/.next
-COPY --from=builder /app/apps/user-app/node_modules ./apps/user-app/node_modules
-COPY --from=builder /app/apps/user-app/package.json ./apps/user-app/package.json
-
-# Expose the port that the app will run on
-EXPOSE 3000
-
-# Start the user-app
 CMD ["npm", "run", "start-user-app"]
